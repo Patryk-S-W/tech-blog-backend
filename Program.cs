@@ -1,3 +1,14 @@
+global using tech_blog_backend.Models;
+global using tech_blog_backend.Services.AnnouncementService;
+global using tech_blog_backend.Dtos.Announcement;
+global using Microsoft.EntityFrameworkCore;
+global using tech_blog_backend.Data;
+global using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Filters;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
