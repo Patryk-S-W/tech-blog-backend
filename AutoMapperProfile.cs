@@ -10,6 +10,7 @@ namespace tech_blog_backend
         public AutoMapperProfile()
         {
             CreateMap<Announcement, GetAnnouncementDto>();
+            CreateMap<AddAnnouncementDto, Announcement>();
         }
     }
 }
