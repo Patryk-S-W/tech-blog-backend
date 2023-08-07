@@ -1,16 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-
+using tech_blog_backend.Common;
+using tech_blog_backend.Common.Contracts;
 namespace tech_blog_backend.Models
 {
-    public class Announcement
+    public class Announcement : Entity
     {
-        public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Image { get; set; } = string.Empty;
-        [DataType(DataType.Date)]
-        public DateTime CreatedDate { get; set; }
-        [DataType(DataType.Date)]
-        public DateTime UpdatedDate { get; set; }
         public string Text { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string Duration { get; set; } = string.Empty;

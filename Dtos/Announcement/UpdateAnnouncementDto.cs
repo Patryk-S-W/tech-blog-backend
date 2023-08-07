@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace tech_blog_backend.Dtos.Announcement
 {
     public class UpdateAnnouncementDto
