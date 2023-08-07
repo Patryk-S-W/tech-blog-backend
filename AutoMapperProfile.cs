@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RPG
+namespace tech_blog_backend
 {
     public class AutoMapperProfile : Profile
     {

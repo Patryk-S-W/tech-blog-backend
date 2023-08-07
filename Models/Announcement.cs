@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
 namespace tech_blog_backend.Models
@@ -19,5 +15,6 @@ namespace tech_blog_backend.Models
         public string Category { get; set; } = string.Empty;
         public string Duration { get; set; } = string.Empty;
         public string Button { get; set; } = string.Empty;
+        public User? User { get; set; }
     }
 }

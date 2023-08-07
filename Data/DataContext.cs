@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace tech_blog_backend.Data
 {
     public class DataContext : DbContext
@@ -13,5 +8,6 @@ namespace tech_blog_backend.Data
         }
 
         public DbSet<Announcement> Announcements => Set<Announcement>();
+        public DbSet<User> Users => Set<User>();
     }
 }

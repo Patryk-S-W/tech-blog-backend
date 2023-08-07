@@ -1,9 +1,3 @@
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +19,12 @@ namespace tech_blog_backend.Controllers
         public async Task<ActionResult<ServiceResponse<List<GetAnnouncementDto>>>> Get()
         {
             return Ok(await _announcementService.GetAllAnnouncements());
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ServiceResponse<GetAnnouncementDto>>> GetById(int id)
+        {
+            return Ok(await _announcementService.GetAnnouncementById(id));
         }
 
     }
