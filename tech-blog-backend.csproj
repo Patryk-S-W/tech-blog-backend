@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>tech_blog_backend</RootNamespace>
+    <UserSecretsId>594b68d6-b13f-49f8-b7d6-6bfed0ec5ff3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
