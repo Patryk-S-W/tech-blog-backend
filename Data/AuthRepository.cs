@@ -25,7 +25,7 @@ namespace tech_blog_backend.Data
                 response.Success = false;
                 response.Message = "User not found.";
             }
-            else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            else if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             {
                 response.Success = false;
                 response.Message = "Wrong password.";
@@ -48,10 +48,7 @@ namespace tech_blog_backend.Data
                 return response;
             }
 
-            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
-
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -66,24 +63,6 @@ namespace tech_blog_backend.Data
                 return true;
             }
             return false;
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
-        }
-
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                return computedHash.SequenceEqual(passwordHash);
-            }
         }
 
         private string CreateToken(User user)

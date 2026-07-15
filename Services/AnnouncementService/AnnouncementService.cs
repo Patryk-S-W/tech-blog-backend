@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using tech_blog_backend.Mappers;
 
 namespace tech_blog_backend.Services.AnnouncementService
 {
@@ -6,11 +7,11 @@ namespace tech_blog_backend.Services.AnnouncementService
     {
 
 
-        private readonly IMapper _mapper;
+        private readonly AnnouncementMapper _mapper;
         private readonly DataContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AnnouncementService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
+        public AnnouncementService(AnnouncementMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
             _context = context;
@@ -26,7 +27,7 @@ namespace tech_blog_backend.Services.AnnouncementService
             var dbAnnouncements = await _context.Announcements
                 .Where(c => c.User!.Id == GetUserId())
                 .ToListAsync();
-            serviceResponse.Data = dbAnnouncements.Select(c => _mapper.Map<GetAnnouncementDto>(c)).ToList();
+            serviceResponse.Data = dbAnnouncements.Select(c => _mapper.ToDto(c)).ToList();
             return serviceResponse;
         }
 
@@ -37,24 +38,25 @@ namespace tech_blog_backend.Services.AnnouncementService
             var dbAnnouncement = await _context.Announcements
                 .Where(c => c.User!.Id == GetUserId())
                 .FirstOrDefaultAsync(c => c.Id == id);
-            serviceResponse.Data = _mapper.Map<GetAnnouncementDto>(dbAnnouncement);
+            serviceResponse.Data = _mapper.ToDto(dbAnnouncement!);
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetAnnouncementDto>>> AddAnnouncement(AddAnnouncementDto newAnnouncement)
         {
             var serviceResponse = new ServiceResponse<List<GetAnnouncementDto>>();
-            var announcement = _mapper.Map<Announcement>(newAnnouncement);
+            var announcement = _mapper.ToEntity(newAnnouncement);
             announcement.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
 
             _context.Announcements.Add(announcement);
             await _context.SaveChangesAsync();
 
             serviceResponse.Data =
-                await _context.Announcements
+                (await _context.Announcements
                     .Where(c => c.User!.Id == GetUserId())
-                    .Select(c => _mapper.Map<GetAnnouncementDto>(c))
-                    .ToListAsync();
+                    .ToListAsync())
+                    .Select(c => _mapper.ToDto(c))
+                    .ToList();
             return serviceResponse;
         }
 
@@ -79,7 +81,7 @@ namespace tech_blog_backend.Services.AnnouncementService
                 announcement.Button = updatedAnnouncement.Button;
 
                 await _context.SaveChangesAsync();
-                serviceResponse.Data = _mapper.Map<GetAnnouncementDto>(announcement);
+                serviceResponse.Data = _mapper.ToDto(announcement);
             }
             catch (Exception ex)
             {
@@ -105,9 +107,10 @@ namespace tech_blog_backend.Services.AnnouncementService
                 await _context.SaveChangesAsync();
 
                 serviceResponse.Data =
-                    await _context.Announcements
+                    (await _context.Announcements
                         .Where(c => c.User!.Id == GetUserId())
-                        .Select(c => _mapper.Map<GetAnnouncementDto>(c)).ToListAsync();
+                        .ToListAsync())
+                        .Select(c => _mapper.ToDto(c)).ToList();
             }
             catch (Exception ex)
             {

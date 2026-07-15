@@ -4,8 +4,7 @@ namespace tech_blog_backend.Models
     {
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
-        public byte[] PasswordHash { get; set; } = new byte[0];
-        public byte[] PasswordSalt { get; set; } = new byte[0];
+        public string PasswordHash { get; set; } = string.Empty;
         public List<Announcement>? Announcements { get; set; }
     }
 }

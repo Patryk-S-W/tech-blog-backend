@@ -18,12 +18,18 @@ public interface IEntity
     /// <summary>
     ///     This property is used to get and set the ID of the user who created the entity
     /// </summary>
-    public string CreatedBy { get; set; }
+    /// <remarks>Nullable: nothing in this codebase populates it yet - there's no
+    /// SaveChanges interceptor or controller-level wiring that sets it from the
+    /// authenticated caller. Pretending it's always set (e.g. via `required`)
+    /// would just move today's warning to every entity-construction call site
+    /// without actually closing the gap.</remarks>
+    public string? CreatedBy { get; set; }
 
     /// <summary>
     ///     This property is used to get and set the ID of the user who last modified the entity
     /// </summary>
-    public string LastModifiedBy { get; set; }
+    /// <remarks>Nullable - see CreatedBy.</remarks>
+    public string? LastModifiedBy { get; set; }
 
     /// <summary>
     ///     This property is used to get and set the Date & Time the entity was last changed
@@ -39,7 +45,8 @@ public interface IEntity
     /// <summary>
     ///     This property is used to get and set the ID of the user who deleted the entity
     /// </summary>
-    public string DeletedBy { get; set; }
+    /// <remarks>Nullable: only meaningful once IsDeleted is true.</remarks>
+    public string? DeletedBy { get; set; }
 
     /// <summary>
     ///     This property is used to get and set the Date & Time the entity was deleted on
@@ -49,6 +56,8 @@ public interface IEntity
     /// <summary>
     ///     This property is to get and set the Concurrency Token for EntityFramework Core
     /// </summary>
+    /// <remarks>Nullable: EF Core only assigns this on first save via the database;
+    /// before that (e.g. right after `new Announcement()`), it's genuinely null.</remarks>
     /// <seealso href="https://docs.microsoft.com/en-us/ef/core/saving/concurrency">Concurrency</seealso>
-    public byte[] RowVersion { get; set; }
+    public byte[]? RowVersion { get; set; }
 }
