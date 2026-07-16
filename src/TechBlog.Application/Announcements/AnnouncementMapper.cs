@@ -6,13 +6,14 @@ namespace TechBlog.Application.Announcements;
 [Mapper]
 public partial class AnnouncementMapper
 {
-    // AnnouncementDto intentionally exposes only the public-facing fields -
-    // ownership (UserId/User), audit/soft-delete metadata from
-    // Common.Entity, and domain events all stay server-side.
+    // AnnouncementDto exposes DateCreated as PublishedAt (public-facing
+    // content, unlike the rest of the audit trail below). Everything else
+    // - ownership (UserId/User), soft-delete metadata, domain events -
+    // stays server-side.
+    [MapProperty(nameof(Announcement.DateCreated), nameof(AnnouncementDto.PublishedAt))]
     [MapperIgnoreSource(nameof(Announcement.UserId))]
     [MapperIgnoreSource(nameof(Announcement.User))]
     [MapperIgnoreSource(nameof(Announcement.Active))]
-    [MapperIgnoreSource(nameof(Announcement.DateCreated))]
     [MapperIgnoreSource(nameof(Announcement.CreatedBy))]
     [MapperIgnoreSource(nameof(Announcement.LastModifiedBy))]
     [MapperIgnoreSource(nameof(Announcement.DateModified))]
