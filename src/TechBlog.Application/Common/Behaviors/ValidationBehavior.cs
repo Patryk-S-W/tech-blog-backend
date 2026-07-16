@@ -6,6 +6,7 @@ namespace TechBlog.Application.Common.Behaviors;
 public sealed class ValidationBehavior<TMessage, TResponse>(
     IEnumerable<IValidator<TMessage>> validators)
     : IPipelineBehavior<TMessage, TResponse>
+    where TMessage : IMessage
 {
     public ValueTask<TResponse> Handle(
         TMessage message,
