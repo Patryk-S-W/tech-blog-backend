@@ -15,7 +15,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <!--
+      Npgsql.EntityFrameworkCore.PostgreSQL only floors its
+      Microsoft.EntityFrameworkCore.Relational dependency (>= 10.0.4), it
+      doesn't pin it - so NuGet was free to resolve 10.0.4 for that
+      transitive reference while everything else in the graph resolved to
+      10.0.9, producing MSB3277 (mismatched assembly versions, one of
+      which wins arbitrarily). Referencing Relational directly at the same
+      10.0.9 as the rest of EF Core removes the ambiguity instead of
+      leaving it to whichever version happens to load first.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
