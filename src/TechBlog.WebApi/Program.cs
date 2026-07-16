@@ -35,6 +35,20 @@ var builder = WebApplication.CreateBuilder(args);
 
     services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+    // Frontend runs on a different origin (localhost:4200 in dev) -
+    // without this, the browser blocks every fetch() call before it even
+    // reaches a controller. Configurable so prod can point at the real
+    // deployed frontend URL instead of hardcoding localhost.
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? ["http://localhost:4200"];
+    services.AddCors(options =>
+    {
+        options.AddPolicy("Frontend", policy =>
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+    });
+
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -61,6 +75,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
