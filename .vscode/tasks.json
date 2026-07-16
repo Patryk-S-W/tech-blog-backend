@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/tech-blog-backend.csproj",
+                "${workspaceFolder}/TechBlog.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/tech-blog-backend.csproj",
+                "${workspaceFolder}/src/TechBlog.WebApi/TechBlog.WebApi.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/tech-blog-backend.csproj"
+                "${workspaceFolder}/src/TechBlog.WebApi/TechBlog.WebApi.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TechBlog.WebApi</RootNamespace>
+    <UserSecretsId>tech-blog-backend</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <!--
+      Microsoft.AspNetCore.OpenApi 10.0.9 pulls in Microsoft.OpenApi 2.0.0
+      transitively, which has a known high-severity DoS vulnerability
+      (GHSA-v5pm-xwqc-g5wc / CVE-2026-49451, stack overflow on circular
+      schema references). Pinning directly to the patched 2.x line.
+    -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TechBlog.Application\TechBlog.Application.csproj" />
+    <ProjectReference Include="..\TechBlog.Infrastructure\TechBlog.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
