@@ -7,5 +7,6 @@ public sealed record AnnouncementDto(
     string Text,
     string Category,
     string Duration,
-    string Button
+    string Button,
+    DateTime? PublishedAt
 );

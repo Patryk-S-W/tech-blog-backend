@@ -14,6 +14,15 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
         context.Announcements
             .FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId, ct);
 
+    public Task<List<Announcement>> GetAllPublishedAsync(CancellationToken ct = default) =>
+        context.Announcements
+            .Where(a => a.Active)
+            .OrderByDescending(a => a.DateCreated)
+            .ToListAsync(ct);
+
+    public Task<Announcement?> GetPublishedByIdAsync(int id, CancellationToken ct = default) =>
+        context.Announcements.FirstOrDefaultAsync(a => a.Id == id && a.Active, ct);
+
     public async Task AddAsync(Announcement announcement, CancellationToken ct = default) =>
         await context.Announcements.AddAsync(announcement, ct);
 
