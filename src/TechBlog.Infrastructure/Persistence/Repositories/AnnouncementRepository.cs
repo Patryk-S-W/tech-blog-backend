@@ -20,6 +20,14 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
             .OrderByDescending(a => a.DateCreated)
             .ToListAsync(ct);
 
+    public async Task<(List<Announcement> Items, int TotalCount)> GetPublishedPagedAsync(int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = context.Announcements.Where(a => a.Active).OrderByDescending(a => a.DateCreated);
+        var totalCount = await query.CountAsync(ct);
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (items, totalCount);
+    }
+
     public Task<Announcement?> GetPublishedByIdAsync(int id, CancellationToken ct = default) =>
         context.Announcements.FirstOrDefaultAsync(a => a.Id == id && a.Active, ct);
 

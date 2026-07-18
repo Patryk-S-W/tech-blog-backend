@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using System.Text;
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,17 +17,22 @@ var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
     services.AddControllers();
+    services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    }).AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
     services.AddOpenApi();
     services.AddHttpContextAccessor();
 
     services.AddApplication();
     services.AddInfrastructure(builder.Configuration);
 
-    // AddMediator() only exists because Mediator.SourceGenerator is
-    // referenced in THIS project - the generated implementation still
-    // picks up every IRequestHandler defined in TechBlog.Application
-    // transitively (that's specifically supported, not something relying
-    // on undocumented behavior).
     services.AddMediator(options =>
     {
         options.ServiceLifetime = ServiceLifetime.Scoped;
@@ -35,10 +41,6 @@ var builder = WebApplication.CreateBuilder(args);
 
     services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-    // Frontend runs on a different origin (localhost:4200 in dev) -
-    // without this, the browser blocks every fetch() call before it even
-    // reaches a controller. Configurable so prod can point at the real
-    // deployed frontend URL instead of hardcoding localhost.
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
         ?? ["http://localhost:4200"];
     services.AddCors(options =>
@@ -64,6 +66,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddAuthorization();
 }
 
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -85,6 +88,4 @@ app.MapControllers();
 
 app.Run();
 
-// For integration tests (WebApplicationFactory) - not used yet, this
-// branch doesn't add tests, but costs nothing to have ready.
 public partial class Program;
