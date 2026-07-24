@@ -1,14 +1,21 @@
+using Asp.Versioning;
 using System.Text;
+using System.Threading.RateLimiting;
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using TechBlog.Application;
 using TechBlog.Application.Common;
 using TechBlog.Application.Common.Behaviors;
 using TechBlog.Infrastructure;
+using TechBlog.Infrastructure.Persistence;
 using TechBlog.WebApi.Middleware;
 using TechBlog.WebApi.Services;
+
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,17 +23,22 @@ var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
     services.AddControllers();
+    services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    }).AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
     services.AddOpenApi();
     services.AddHttpContextAccessor();
 
     services.AddApplication();
     services.AddInfrastructure(builder.Configuration);
 
-    // AddMediator() only exists because Mediator.SourceGenerator is
-    // referenced in THIS project - the generated implementation still
-    // picks up every IRequestHandler defined in TechBlog.Application
-    // transitively (that's specifically supported, not something relying
-    // on undocumented behavior).
     services.AddMediator(options =>
     {
         options.ServiceLifetime = ServiceLifetime.Scoped;
@@ -35,19 +47,19 @@ var builder = WebApplication.CreateBuilder(args);
 
     services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-    // Frontend runs on a different origin (localhost:4200 in dev) -
-    // without this, the browser blocks every fetch() call before it even
-    // reaches a controller. Configurable so prod can point at the real
-    // deployed frontend URL instead of hardcoding localhost.
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
         ?? ["http://localhost:4200"];
     services.AddCors(options =>
     {
         options.AddPolicy("Frontend", policy =>
             policy.WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod());
+                .WithHeaders("Content-Type", "Authorization")
+                .WithMethods("GET", "POST", "PUT", "DELETE"));
     });
+
+    var jwtSettings = builder.Configuration.GetSection("AppSettings");
+    var issuer = jwtSettings["Issuer"] ?? "TechBlog";
+    var audience = jwtSettings["Audience"] ?? "TechBlog";
 
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -57,16 +69,59 @@ var builder = WebApplication.CreateBuilder(args);
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
                     .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
             };
         });
     services.AddAuthorization();
+
+    services.AddResponseCaching();
+
+    services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddFixedWindowLimiter("api", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 100;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        });
+        options.AddFixedWindowLimiter("auth", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 10;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        });
+    });
 }
+
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    await db.Database.MigrateAsync();
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -78,13 +133,17 @@ app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
 
+app.UseResponseCaching();
+
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.MapControllers();
 
 app.Run();
 
-// For integration tests (WebApplicationFactory) - not used yet, this
-// branch doesn't add tests, but costs nothing to have ready.
 public partial class Program;

@@ -23,7 +23,11 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Username).IsUnique();
 
         builder.Property(u => u.PasswordHash).IsRequired();
+        builder.Property(u => u.Role).IsRequired().HasMaxLength(50).HasDefaultValue("User");
+        builder.Property(u => u.FailedLoginAttempts).HasDefaultValue(0);
+        builder.Property(u => u.LockoutEnd).IsRequired(false);
 
         builder.Ignore(u => u.DomainEvents);
+        builder.Ignore(u => u.IsLockedOut);
     }
 }

@@ -16,4 +16,10 @@ public sealed class UserRepository(DataContext context) : IUserRepository
 
     public async Task AddAsync(User user, CancellationToken ct = default) =>
         await context.Users.AddAsync(user, ct);
+
+    public Task UpdateAsync(User user, CancellationToken ct = default)
+    {
+        context.Users.Update(user);
+        return Task.CompletedTask;
+    }
 }

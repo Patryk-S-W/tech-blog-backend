@@ -1,6 +1,8 @@
+using Asp.Versioning;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TechBlog.Application.Announcements;
 using TechBlog.Application.Announcements.Commands.CreateAnnouncement;
 using TechBlog.Application.Announcements.Commands.DeleteAnnouncement;
@@ -11,8 +13,10 @@ using TechBlog.Application.Announcements.Queries.GetAnnouncements;
 namespace TechBlog.WebApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/announcement")]
+[ApiVersion("1.0")]
 [Authorize]
+[EnableRateLimiting("api")]
 public sealed class AnnouncementController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

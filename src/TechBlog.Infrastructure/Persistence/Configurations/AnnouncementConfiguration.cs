@@ -13,6 +13,8 @@ public sealed class AnnouncementConfiguration : IEntityTypeConfiguration<Announc
         builder.HasKey(a => a.Id);
 
         builder.Property(a => a.Title).IsRequired();
+        builder.Property(a => a.Slug).IsRequired();
+        builder.HasIndex(a => a.Slug).IsUnique();
         builder.Property(a => a.Image).IsRequired();
         builder.Property(a => a.Text).IsRequired();
         builder.Property(a => a.Category).IsRequired();

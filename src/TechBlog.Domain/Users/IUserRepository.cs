@@ -6,4 +6,5 @@ public interface IUserRepository
     Task<User?> GetByUsernameAsync(Username username, CancellationToken ct = default);
     Task<bool> ExistsAsync(Username username, CancellationToken ct = default);
     Task AddAsync(User user, CancellationToken ct = default);
+    Task UpdateAsync(User user, CancellationToken ct = default);
 }

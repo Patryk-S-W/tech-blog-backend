@@ -1,10 +1,12 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TechBlog.Application.Common;
 using TechBlog.Domain.Announcements;
 using TechBlog.Domain.Common;
+using TechBlog.Domain.Projects;
 using TechBlog.Domain.Users;
+using TechBlog.Infrastructure.HealthChecks;
 using TechBlog.Infrastructure.Persistence;
 using TechBlog.Infrastructure.Persistence.Repositories;
 using TechBlog.Infrastructure.Services;
@@ -23,9 +25,14 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DataContext>());
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
+
+        services.AddHealthChecks()
+            .AddCheck<PostgresHealthCheck>("postgresql", failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy, tags: ["db"]);
 
         return services;
     }
