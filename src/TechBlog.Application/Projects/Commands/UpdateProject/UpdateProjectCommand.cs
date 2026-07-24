@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using Mediator;
 using TechBlog.Application.Common;
-using TechBlog.Domain.Common;
 using TechBlog.Domain.Projects;
 
 namespace TechBlog.Application.Projects.Commands.UpdateProject;
@@ -28,13 +27,14 @@ public sealed class UpdateProjectCommandValidator : AbstractValidator<UpdateProj
 
 public sealed class UpdateProjectCommandHandler(
     IProjectRepository repository,
-    IUnitOfWork unitOfWork,
+    Domain.Common.IUnitOfWork unitOfWork,
+    ICurrentUserService currentUser,
     ProjectMapper mapper)
     : IRequestHandler<UpdateProjectCommand, ProjectDto>
 {
     public async ValueTask<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
     {
-        var project = await repository.GetByIdAsync(request.Id, cancellationToken)
+        var project = await repository.GetByIdForUserAsync(request.Id, currentUser.UserId, cancellationToken)
             ?? throw new NotFoundException($"Project {request.Id} not found.");
 
         project.Update(
@@ -43,7 +43,8 @@ public sealed class UpdateProjectCommandHandler(
             request.ShortDescription,
             request.Text,
             request.Url,
-            request.Author);
+            request.Author,
+            currentUser.Username);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -4,5 +4,6 @@ namespace TechBlog.Application.Common;
 
 public interface ITokenGenerator
 {
-    string CreateToken(User user);
+    string CreateAccessToken(User user);
+    string CreateRefreshToken();
 }

@@ -11,6 +11,7 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     public DbSet<User> Users => Set<User>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

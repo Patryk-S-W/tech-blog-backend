@@ -1,15 +1,21 @@
 using Asp.Versioning;
 using System.Text;
+using System.Threading.RateLimiting;
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using TechBlog.Application;
 using TechBlog.Application.Common;
 using TechBlog.Application.Common.Behaviors;
 using TechBlog.Infrastructure;
+using TechBlog.Infrastructure.Persistence;
 using TechBlog.WebApi.Middleware;
 using TechBlog.WebApi.Services;
+
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,9 +53,13 @@ var builder = WebApplication.CreateBuilder(args);
     {
         options.AddPolicy("Frontend", policy =>
             policy.WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod());
+                .WithHeaders("Content-Type", "Authorization")
+                .WithMethods("GET", "POST", "PUT", "DELETE"));
     });
+
+    var jwtSettings = builder.Configuration.GetSection("AppSettings");
+    var issuer = jwtSettings["Issuer"] ?? "TechBlog";
+    var audience = jwtSettings["Audience"] ?? "TechBlog";
 
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -59,17 +69,59 @@ var builder = WebApplication.CreateBuilder(args);
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
                     .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
             };
         });
     services.AddAuthorization();
+
+    services.AddResponseCaching();
+
+    services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddFixedWindowLimiter("api", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 100;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        });
+        options.AddFixedWindowLimiter("auth", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 10;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        });
+    });
 }
 
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    await db.Database.MigrateAsync();
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -81,8 +133,14 @@ app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
 
+app.UseResponseCaching();
+
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.MapControllers();
 

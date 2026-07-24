@@ -1,4 +1,5 @@
 ﻿using TechBlog.Domain.Common;
+using TechBlog.Domain.Users;
 
 namespace TechBlog.Domain.Projects;
 
@@ -13,13 +14,17 @@ public sealed class Project : Entity, IAggregateRoot
     public string Url { get; private set; } = string.Empty;
     public string Author { get; private set; } = string.Empty;
 
+    public int UserId { get; private set; }
+    public User? User { get; private set; }
+
     public static Project Create(
         string title,
         string image,
         string shortDescription,
         string text,
         string url,
-        string author)
+        string author,
+        int userId)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("Project title cannot be empty.");
@@ -32,6 +37,7 @@ public sealed class Project : Entity, IAggregateRoot
             Text = text,
             Url = url,
             Author = author,
+            UserId = userId,
         };
     }
 
@@ -41,7 +47,8 @@ public sealed class Project : Entity, IAggregateRoot
         string shortDescription,
         string text,
         string url,
-        string author)
+        string author,
+        string? modifiedBy)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("Project title cannot be empty.");
@@ -52,5 +59,7 @@ public sealed class Project : Entity, IAggregateRoot
         Text = text;
         Url = url;
         Author = author;
+
+        Touch(modifiedBy);
     }
 }

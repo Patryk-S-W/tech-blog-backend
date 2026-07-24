@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using TechBlog.Application.Announcements;
+using TechBlog.Application.Projects;
 
 namespace TechBlog.Application;
 
@@ -19,6 +20,7 @@ public static class DependencyInjection
 
         // Mapperly mappers are stateless - safe (and cheaper) as singletons
         services.AddSingleton<AnnouncementMapper>();
+        services.AddSingleton<ProjectMapper>();
 
         return services;
     }

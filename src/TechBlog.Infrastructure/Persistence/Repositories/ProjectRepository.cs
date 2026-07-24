@@ -5,14 +5,15 @@ namespace TechBlog.Infrastructure.Persistence.Repositories;
 
 public sealed class ProjectRepository(DataContext context) : IProjectRepository
 {
-    public Task<List<Project>> GetAllAsync(CancellationToken ct = default) =>
+    public Task<List<Project>> GetAllForUserAsync(int userId, CancellationToken ct = default) =>
         context.Projects
+            .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.DateCreated)
             .ToListAsync(ct);
 
-    public Task<Project?> GetByIdAsync(int id, CancellationToken ct = default) =>
+    public Task<Project?> GetByIdForUserAsync(int id, int userId, CancellationToken ct = default) =>
         context.Projects
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId, ct);
 
     public Task<List<Project>> GetAllPublishedAsync(CancellationToken ct = default) =>
         context.Projects

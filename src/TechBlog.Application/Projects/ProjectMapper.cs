@@ -7,6 +7,8 @@ namespace TechBlog.Application.Projects;
 public partial class ProjectMapper
 {
     [MapperIgnoreSource(nameof(Project.Active))]
+    [MapperIgnoreSource(nameof(Project.UserId))]
+    [MapperIgnoreSource(nameof(Project.User))]
     [MapperIgnoreSource(nameof(Project.DateCreated))]
     [MapperIgnoreSource(nameof(Project.CreatedBy))]
     [MapperIgnoreSource(nameof(Project.LastModifiedBy))]

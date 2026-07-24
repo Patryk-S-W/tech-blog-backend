@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using TechBlog.Domain.Common;
 using TechBlog.Domain.Users;
 
@@ -9,6 +12,7 @@ public sealed class Announcement : Entity, IAggregateRoot
     private Announcement() { }
 
     public string Title { get; private set; } = string.Empty;
+    public string Slug { get; private set; } = string.Empty;
     public string Image { get; private set; } = string.Empty;
     public string Text { get; private set; } = string.Empty;
 
@@ -36,6 +40,7 @@ public sealed class Announcement : Entity, IAggregateRoot
         var announcement = new Announcement
         {
             Title = title.Trim(),
+            Slug = GenerateSlug(title),
             Image = image,
             Text = text,
             Category = category,
@@ -66,6 +71,7 @@ public sealed class Announcement : Entity, IAggregateRoot
         ValidateTitle(title);
 
         Title = title.Trim();
+        Slug = GenerateSlug(title);
         Image = image;
         Text = text;
         Category = category;
@@ -102,4 +108,25 @@ public sealed class Announcement : Entity, IAggregateRoot
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("Announcement title cannot be empty.");
     }
+
+    public static string GenerateSlug(string title)
+    {
+        var normalized = title.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(normalized.Length);
+
+        foreach (var c in normalized)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (category != NonSpacingMark)
+                sb.Append(c);
+        }
+
+        return Regex.Replace(sb.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant(), @"[^a-z0-9\s-]", "")
+            .Trim()
+            .Replace("  ", " ")
+            .Replace(' ', '-')
+            .Replace("--", "-");
+    }
+
+    private static readonly UnicodeCategory NonSpacingMark = UnicodeCategory.NonSpacingMark;
 }

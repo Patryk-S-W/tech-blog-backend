@@ -19,6 +19,11 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Url).IsRequired();
         builder.Property(p => p.Author).IsRequired();
 
+        builder.HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasQueryFilter(p => !p.IsDeleted);
 
         builder.Ignore(p => p.DomainEvents);

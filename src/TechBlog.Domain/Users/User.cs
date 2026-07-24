@@ -15,11 +15,17 @@ public sealed class User : Entity, IAggregateRoot
 
     public Username Username { get; private set; } = null!;
     public string PasswordHash { get; private set; } = string.Empty;
+    public string Role { get; private set; } = "User";
+
+    public int FailedLoginAttempts { get; private set; }
+    public DateTime? LockoutEnd { get; private set; }
+
+    public bool IsLockedOut => LockoutEnd.HasValue && LockoutEnd.Value > DateTime.UtcNow;
 
     /// <param name="passwordHash">Already hashed - hashing is an
     /// infrastructure concern (BCrypt today), the domain just stores and
     /// compares hashes via <see cref="IPasswordHasher"/>.</param>
-    public static User Register(Username username, string passwordHash)
+    public static User Register(Username username, string passwordHash, string role = "User")
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new DomainException("Password hash cannot be empty.");
@@ -28,6 +34,7 @@ public sealed class User : Entity, IAggregateRoot
         {
             Username = username,
             PasswordHash = passwordHash,
+            Role = role,
         };
     }
 
@@ -38,5 +45,18 @@ public sealed class User : Entity, IAggregateRoot
 
         PasswordHash = newPasswordHash;
         Touch(Username.Value);
+    }
+
+    public void RecordFailedLogin()
+    {
+        FailedLoginAttempts++;
+        if (FailedLoginAttempts >= 5)
+            LockoutEnd = DateTime.UtcNow.AddMinutes(15);
+    }
+
+    public void ResetFailedLoginAttempts()
+    {
+        FailedLoginAttempts = 0;
+        LockoutEnd = null;
     }
 }

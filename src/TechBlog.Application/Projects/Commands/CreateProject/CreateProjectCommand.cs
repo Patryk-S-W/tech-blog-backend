@@ -27,6 +27,7 @@ public sealed class CreateProjectCommandValidator : AbstractValidator<CreateProj
 public sealed class CreateProjectCommandHandler(
     IProjectRepository repository,
     IUnitOfWork unitOfWork,
+    ICurrentUserService currentUser,
     ProjectMapper mapper)
     : IRequestHandler<CreateProjectCommand, ProjectDto>
 {
@@ -38,7 +39,8 @@ public sealed class CreateProjectCommandHandler(
             request.ShortDescription,
             request.Text,
             request.Url,
-            request.Author);
+            request.Author,
+            currentUser.UserId);
 
         await repository.AddAsync(project, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

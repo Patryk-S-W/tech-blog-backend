@@ -2,9 +2,9 @@
 
 public interface IProjectRepository
 {
-    Task<List<Project>> GetAllAsync(CancellationToken ct = default);
+    Task<List<Project>> GetAllForUserAsync(int userId, CancellationToken ct = default);
 
-    Task<Project?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<Project?> GetByIdForUserAsync(int id, int userId, CancellationToken ct = default);
 
     Task<List<Project>> GetAllPublishedAsync(CancellationToken ct = default);
 

@@ -1,6 +1,8 @@
-﻿using Mediator;
+﻿using Asp.Versioning;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TechBlog.Application.Projects;
 using TechBlog.Application.Projects.Commands.CreateProject;
 using TechBlog.Application.Projects.Commands.DeleteProject;
@@ -11,8 +13,10 @@ using TechBlog.Application.Projects.Queries.GetProjects;
 namespace TechBlog.WebApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/project")]
+[ApiVersion("1.0")]
 [Authorize]
+[EnableRateLimiting("api")]
 public sealed class ProjectController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

@@ -9,15 +9,16 @@ public sealed record DeleteProjectCommand(int Id) : IRequest<bool>;
 
 public sealed class DeleteProjectCommandHandler(
     IProjectRepository repository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ICurrentUserService currentUser)
     : IRequestHandler<DeleteProjectCommand, bool>
 {
     public async ValueTask<bool> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
     {
-        var project = await repository.GetByIdAsync(request.Id, cancellationToken)
+        var project = await repository.GetByIdForUserAsync(request.Id, currentUser.UserId, cancellationToken)
             ?? throw new NotFoundException($"Project {request.Id} not found.");
 
-        project.MarkDeleted(null);
+        project.MarkDeleted(currentUser.Username);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
