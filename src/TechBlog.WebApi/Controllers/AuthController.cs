@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.RateLimiting;
 using TechBlog.Application.Auth;
 using TechBlog.Application.Auth.Commands.Login;
 using TechBlog.Application.Auth.Commands.RefreshToken;
-using TechBlog.Application.Auth.Commands.Register;
 
 namespace TechBlog.WebApi.Controllers;
 
@@ -16,11 +15,6 @@ namespace TechBlog.WebApi.Controllers;
 [AllowAnonymous]
 public sealed class AuthController(IMediator mediator) : ControllerBase
 {
-    [HttpPost("register")]
-    [EnableRateLimiting("auth")]
-    public async Task<ActionResult<int>> Register(RegisterCommand command, CancellationToken ct) =>
-        Ok(await mediator.Send(command, ct));
-
     [HttpPost("login")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<LoginResponse>> Login(LoginCommand command, CancellationToken ct) =>
