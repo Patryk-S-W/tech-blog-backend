@@ -12,12 +12,14 @@ using TechBlog.Application.Common;
 using TechBlog.Application.Common.Behaviors;
 using TechBlog.Infrastructure;
 using TechBlog.Infrastructure.Persistence;
+using TechBlog.WebApi.Configuration;
 using TechBlog.WebApi.Middleware;
 using TechBlog.WebApi.Services;
 
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+StartupConfiguration.Validate(builder.Configuration);
 
 {
     var services = builder.Services;
