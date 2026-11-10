@@ -52,6 +52,26 @@ dotnet ef database update
 
 ## Development server
 
+### Authentication and configuration
+
+Public HTTP registration is disabled. Account provisioning must use a controlled,
+trusted process; the application/domain registration commands remain available.
+Login and refresh endpoints are unchanged. Existing accounts and tokens are not
+revoked by this restriction and should be reviewed separately if needed.
+
+For production, supply `ConnectionStrings__Postgres_Db` and `AppSettings__Token`
+through the deployment environment (or an equivalent configuration provider).
+The connection string must specify a PostgreSQL host, and the JWT signing key
+must contain at least 64 UTF-8 bytes. Startup rejects missing, malformed, or
+unexpanded `${...}` settings without including their values in validation errors.
+JSON configuration does not interpolate shell-style placeholders. Development
+can use the user secrets shown above; never commit real credentials.
+
+Integration tests run real startup migrations. Before running `dotnet test
+TechBlog.sln --configuration Release`, set the same two environment variables to
+test-only credentials for an isolated PostgreSQL database, not a production
+database. The health fixture uses Development and HTTPS test requests.
+
 From `src/TechBlog.WebApi`, run `dotnet watch run` for a dev server.
 Navigate to `http://localhost:5284/scalar` for interactive API
 documentation. The application will automatically reload if you change
