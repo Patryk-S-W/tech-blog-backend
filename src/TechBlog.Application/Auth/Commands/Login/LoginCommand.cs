@@ -40,6 +40,7 @@ public sealed class LoginCommandHandler(
         {
             user.RecordFailedLogin();
             await userRepository.UpdateAsync(user, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             throw new UnauthorizedAccessException("Invalid username or password.");
         }
 

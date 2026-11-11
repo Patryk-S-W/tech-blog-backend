@@ -67,10 +67,12 @@ unexpanded `${...}` settings without including their values in validation errors
 JSON configuration does not interpolate shell-style placeholders. Development
 can use the user secrets shown above; never commit real credentials.
 
-Integration tests run real startup migrations. Before running `dotnet test
-TechBlog.sln --configuration Release`, set the same two environment variables to
-test-only credentials for an isolated PostgreSQL database, not a production
-database. The health fixture uses Development and HTTPS test requests.
+Integration tests require explicit `TECHBLOG_TEST_CONNECTION` and
+`TECHBLOG_TEST_JWT_KEY`, never runtime connection or JWT settings. The connection
+must target localhost or 127.0.0.1 and a disposable database named `techblog_test_*`.
+The test key must contain at least 64 UTF-8 bytes. Missing or unsafe settings fail
+before test-host startup. Tests apply real migrations to this isolated database.
+Run `dotnet test TechBlog.sln --configuration Release` with these dedicated settings.
 
 From `src/TechBlog.WebApi`, run `dotnet watch run` for a dev server.
 Navigate to `http://localhost:5284/scalar` for interactive API
