@@ -2,7 +2,6 @@ using Asp.Versioning;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
 using TechBlog.Application.Announcements;
 using TechBlog.Application.Announcements.Queries.GetPublishedAnnouncementById;
 using TechBlog.Application.Announcements.Queries.GetPublishedAnnouncementBySlug;
@@ -24,22 +23,7 @@ public sealed class BlogController(IMediator mediator, IAnnouncementRepository r
         [FromQuery] PaginationParams query,
         [FromQuery] string? category,
         CancellationToken ct)
-    {
-        if (!string.IsNullOrEmpty(category))
-        {
-            var items = await repository.GetPublishedByCategoryAsync(category, ct);
-            var mapper = new AnnouncementMapper();
-            return Ok(new PagedResult<AnnouncementDto>
-            {
-                Items = items.Select(mapper.ToDto).ToList(),
-                TotalCount = items.Count,
-                Page = 1,
-                PageSize = Math.Max(1, items.Count),
-            });
-        }
-
-        return Ok(await mediator.Send(new GetPublishedAnnouncementsQuery(query), ct));
-    }
+        => Ok(await mediator.Send(new GetPublishedAnnouncementsQuery(query, category), ct));
 
     [HttpGet("categories")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]

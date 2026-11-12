@@ -20,12 +20,6 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
             .OrderByDescending(a => a.DateCreated)
             .ToListAsync(ct);
 
-    public Task<List<Announcement>> GetPublishedByCategoryAsync(string category, CancellationToken ct = default) =>
-        context.Announcements
-            .Where(a => a.Active && a.Category == category)
-            .OrderByDescending(a => a.DateCreated)
-            .ToListAsync(ct);
-
     public Task<List<string>> GetDistinctCategoriesAsync(CancellationToken ct = default) =>
         context.Announcements
             .Where(a => a.Active && a.Category != string.Empty)
@@ -34,11 +28,14 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
             .OrderBy(c => c)
             .ToListAsync(ct);
 
-    public async Task<(List<Announcement> Items, int TotalCount)> GetPublishedPagedAsync(int page, int pageSize, CancellationToken ct = default)
+    public async Task<(List<Announcement> Items, int TotalCount)> GetPublishedPagedAsync(int page, int pageSize, string? category = null, CancellationToken ct = default)
     {
-        var query = context.Announcements.Where(a => a.Active).OrderByDescending(a => a.DateCreated);
+        var query = context.Announcements.Where(a => a.Active);
+        if (!string.IsNullOrEmpty(category))
+            query = query.Where(a => a.Category == category);
         var totalCount = await query.CountAsync(ct);
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        var items = await query.OrderByDescending(a => a.DateCreated).ThenByDescending(a => a.Id)
+            .Skip(checked((page - 1) * pageSize)).Take(pageSize).ToListAsync(ct);
         return (items, totalCount);
     }
 
