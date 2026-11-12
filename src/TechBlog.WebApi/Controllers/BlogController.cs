@@ -19,7 +19,7 @@ namespace TechBlog.WebApi.Controllers;
 public sealed class BlogController(IMediator mediator, IAnnouncementRepository repository) : ControllerBase
 {
     [HttpGet("announcements")]
-    [ResponseCache(Duration = 30, VaryByQueryKeys = ["page", "pageSize", "category"])]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<PagedResult<AnnouncementDto>>> GetPublished(
         [FromQuery] PaginationParams query,
         [FromQuery] string? category,
@@ -34,7 +34,7 @@ public sealed class BlogController(IMediator mediator, IAnnouncementRepository r
                 Items = items.Select(mapper.ToDto).ToList(),
                 TotalCount = items.Count,
                 Page = 1,
-                PageSize = items.Count,
+                PageSize = Math.Max(1, items.Count),
             });
         }
 
@@ -42,17 +42,17 @@ public sealed class BlogController(IMediator mediator, IAnnouncementRepository r
     }
 
     [HttpGet("categories")]
-    [ResponseCache(Duration = 60)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<List<string>>> GetCategories(CancellationToken ct) =>
         Ok(await repository.GetDistinctCategoriesAsync(ct));
 
     [HttpGet("announcements/{id:int}")]
-    [ResponseCache(Duration = 60)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<AnnouncementDto>> GetPublishedById(int id, CancellationToken ct) =>
         Ok(await mediator.Send(new GetPublishedAnnouncementByIdQuery(id), ct));
 
     [HttpGet("announcements/by-slug/{slug}")]
-    [ResponseCache(Duration = 60)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<AnnouncementDto>> GetPublishedBySlug(string slug, CancellationToken ct) =>
         Ok(await mediator.Send(new GetPublishedAnnouncementBySlugQuery(slug), ct));
 }

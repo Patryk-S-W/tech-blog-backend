@@ -52,6 +52,28 @@ dotnet ef database update
 
 ## Development server
 
+### Article drafts and publication
+
+`POST /api/v1/announcement` creates a private draft. Article responses include
+`isPublished` (the existing Active state) and nullable `publishedAt` (first
+publication time). Owner lists include drafts. Authenticated owner-only
+`POST /api/v1/announcement/{id}/publish` and `/unpublish` return the updated
+article (200); repeated transitions return 400. Another author's, deleted or
+missing article returns 404. Unpublishing retains the first publication time.
+Public article ID, slug, category and list endpoints exclude drafts/deleted
+articles and use no-store caching. Unique-value conflicts return sanitized 409.
+
+The additive publication migration preserves existing Active values, ownership,
+content and creation dates; active rows inherit their nullable creation date as
+publication time. Only the announcement Active column default becomes false.
+Back up and review existing migration preconditions before deployment: older
+slug uniqueness and project-owner foreign-key migrations can reject legacy data.
+This feature does not repair those historical records or change article slugs.
+
+Publication integration tests use the dedicated test settings below. The upgrade
+test creates and drops its own `techblog_test_upgrade_*` database and requires
+CREATEDB on the disposable PostgreSQL role; it never downgrades the shared test DB.
+
 ### Authentication and configuration
 
 Public HTTP registration is disabled. Account provisioning must use a controlled,

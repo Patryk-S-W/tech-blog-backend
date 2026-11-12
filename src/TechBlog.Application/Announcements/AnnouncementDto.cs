@@ -9,5 +9,6 @@ public sealed record AnnouncementDto(
     string Category,
     string Duration,
     string Button,
-    DateTime? PublishedAt
+    DateTime? PublishedAt,
+    bool IsPublished
 );

@@ -11,6 +11,8 @@ public sealed class AnnouncementConfiguration : IEntityTypeConfiguration<Announc
         builder.ToTable("Announcements");
 
         builder.HasKey(a => a.Id);
+        builder.Property(a => a.Active).HasDefaultValue(false).IsConcurrencyToken();
+        builder.Property(a => a.PublishedAt).IsRequired(false).IsConcurrencyToken();
 
         builder.Property(a => a.Title).IsRequired();
         builder.Property(a => a.Slug).IsRequired();

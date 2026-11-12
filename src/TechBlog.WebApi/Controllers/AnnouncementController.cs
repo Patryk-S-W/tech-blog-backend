@@ -7,6 +7,8 @@ using TechBlog.Application.Announcements;
 using TechBlog.Application.Announcements.Commands.CreateAnnouncement;
 using TechBlog.Application.Announcements.Commands.DeleteAnnouncement;
 using TechBlog.Application.Announcements.Commands.UpdateAnnouncement;
+using TechBlog.Application.Announcements.Commands.PublishAnnouncement;
+using TechBlog.Application.Announcements.Commands.UnpublishAnnouncement;
 using TechBlog.Application.Announcements.Queries.GetAnnouncementById;
 using TechBlog.Application.Announcements.Queries.GetAnnouncements;
 
@@ -44,4 +46,12 @@ public sealed class AnnouncementController(IMediator mediator) : ControllerBase
         await mediator.Send(new DeleteAnnouncementCommand(id), ct);
         return NoContent();
     }
+
+    [HttpPost("{id:int}/publish")]
+    public async Task<ActionResult<AnnouncementDto>> Publish(int id, CancellationToken ct) =>
+        Ok(await mediator.Send(new PublishAnnouncementCommand(id), ct));
+
+    [HttpPost("{id:int}/unpublish")]
+    public async Task<ActionResult<AnnouncementDto>> Unpublish(int id, CancellationToken ct) =>
+        Ok(await mediator.Send(new UnpublishAnnouncementCommand(id), ct));
 }
