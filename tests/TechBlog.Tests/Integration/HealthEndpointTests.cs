@@ -1,13 +1,41 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using TechBlog.Infrastructure.Persistence;
+using TechBlog.Tests.Configuration;
 using Xunit;
 
 namespace TechBlog.Tests.Integration;
 
 public sealed class HealthTestFactory : WebApplicationFactory<Program>
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+    private readonly DisposableTestDatabase _database = DisposableTestDatabase.FromEnvironment();
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Set test values before Program validates configuration.
+        builder.ConfigureHostConfiguration(config => config.AddInMemoryCollection(_database.Configuration));
+        return base.CreateHost(builder);
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
         builder.UseEnvironment("Development");
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(_database.Configuration));
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<DataContext>();
+            services.RemoveAll<DbContextOptions<DataContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<DataContext>>();
+            services.AddDbContext<DataContext>(options => options.UseNpgsql(_database.Connection));
+        });
+    }
 }
 
 public sealed class HealthEndpointTests : IClassFixture<HealthTestFactory>
