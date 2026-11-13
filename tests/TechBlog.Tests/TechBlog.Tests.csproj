@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TechBlog.Infrastructure\TechBlog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\TechBlog.OwnerCli\TechBlog.OwnerCli.csproj" />
     <ProjectReference Include="..\..\src\TechBlog.WebApi\TechBlog.WebApi.csproj" />
   </ItemGroup>
 

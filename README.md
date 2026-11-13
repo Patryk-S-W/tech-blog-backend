@@ -52,6 +52,31 @@ dotnet ef database update
 
 ## Development server
 
+### Private account provisioning
+
+The local CLI creates an ordinary account with the existing registration policy;
+it does not grant new roles, replace passwords or expose an HTTP endpoint.
+Set `ConnectionStrings__Postgres_Db` through trusted deployment configuration.
+The database must already have all migrations applied; the CLI never migrates it.
+No JWT key is needed. Do not pass credentials as command arguments.
+
+```sh
+dotnet run --project src/TechBlog.OwnerCli -- --username owner
+docker compose exec backend dotnet /app/tools/owner/TechBlog.OwnerCli.dll --username owner
+```
+
+Both commands prompt for a hidden password and confirmation. For automation,
+pipe one password line from a trusted secret source (never a literal shell command
+or password environment variable):
+
+```sh
+trusted-secret-source | docker compose exec -T backend dotnet /app/tools/owner/TechBlog.OwnerCli.dll --username owner --password-stdin
+```
+
+Only `--username` and `--password-stdin` are accepted. Exit codes: 0 created,
+2 invalid arguments/input/configuration, 1 database, duplicate-account or cancellation
+failure. Failures do not replace an existing account or revoke its tokens.
+
 ### Article drafts and publication
 
 `POST /api/v1/announcement` creates a private draft. Article responses include
