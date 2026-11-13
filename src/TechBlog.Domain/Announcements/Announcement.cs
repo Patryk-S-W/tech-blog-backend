@@ -22,6 +22,7 @@ public sealed class Announcement : Entity, IAggregateRoot
 
     public string Duration { get; private set; } = string.Empty;
     public string Button { get; private set; } = string.Empty;
+    public DateTime? PublishedAt { get; private set; }
 
     public int UserId { get; private set; }
     public User? User { get; private set; }
@@ -48,6 +49,8 @@ public sealed class Announcement : Entity, IAggregateRoot
             Button = button,
             UserId = userId,
         };
+
+        announcement.SetActive(false);
 
         // Note for whenever this actually gets dispatched: announcement.Id
         // is still 0 here - the database hasn't assigned one yet, that
@@ -81,16 +84,19 @@ public sealed class Announcement : Entity, IAggregateRoot
         Touch(modifiedBy);
     }
 
-    /// <summary>Uses the existing Active flag as the published/unpublished
-    /// switch - that's what it was already doing implicitly (nothing ever
-    /// set it to false, so every announcement was implicitly "active" by
-    /// default), just named now.</summary>
+    /// <summary>Active is the publication state; the first publication date survives unpublishing.</summary>
     public void Publish(string? modifiedBy)
     {
         if (Active)
             throw new DomainException("Announcement is already published.");
 
         SetActive(true);
+        if (PublishedAt is null)
+        {
+            var now = DateTime.UtcNow;
+            // Match PostgreSQL precision so the response and persisted timestamp agree.
+            PublishedAt = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMicrosecond, DateTimeKind.Utc);
+        }
         Touch(modifiedBy);
     }
 

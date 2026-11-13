@@ -15,9 +15,8 @@ public sealed class ResponseCacheTests
         var method = controllerType.GetMethod("GetPublished")!;
         var attr = method.GetCustomAttribute<ResponseCacheAttribute>();
         Assert.NotNull(attr);
-        Assert.Equal(30, attr.Duration);
-        Assert.Contains("page", attr.VaryByQueryKeys!);
-        Assert.Contains("pageSize", attr.VaryByQueryKeys!);
+        Assert.True(attr.NoStore);
+        Assert.Equal(ResponseCacheLocation.None, attr.Location);
     }
 
     [Fact]
@@ -27,7 +26,8 @@ public sealed class ResponseCacheTests
         var method = controllerType.GetMethod("GetPublishedById")!;
         var attr = method.GetCustomAttribute<ResponseCacheAttribute>();
         Assert.NotNull(attr);
-        Assert.Equal(60, attr.Duration);
+        Assert.True(attr.NoStore);
+        Assert.Equal(ResponseCacheLocation.None, attr.Location);
     }
 
     [Theory]

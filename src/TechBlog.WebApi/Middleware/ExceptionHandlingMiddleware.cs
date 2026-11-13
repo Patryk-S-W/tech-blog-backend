@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TechBlog.Application.Common;
 using TechBlog.Domain.Common;
 using ValidationException = FluentValidation.ValidationException;
@@ -29,6 +31,10 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
     {
         var (statusCode, title, errors) = exception switch
         {
+            DbUpdateConcurrencyException =>
+                (HttpStatusCode.Conflict, "The article changed. Reload it before trying again.", null),
+            DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } } =>
+                (HttpStatusCode.Conflict, "A record with the same unique value already exists.", null),
             ValidationException ve => (
                 HttpStatusCode.UnprocessableEntity,
                 "Validation failed",
