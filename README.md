@@ -79,6 +79,15 @@ failure. Failures do not replace an existing account or revoke its tokens.
 
 ### Article drafts and publication
 
+Public `GET /api/v1/blog/announcements?page=1&pageSize=10&category=...` applies
+the optional exact category filter before counting and paging. Empty category
+means no filter. Results sort by creation date descending, then ID descending.
+Pages and sizes must be positive (422 otherwise); sizes above 100 retain the
+existing cap of 100. Offsets exceeding the supported integer range return 422.
+Valid pages beyond the end return empty items with the requested page/size and
+filtered totals. Empty results have zero totalPages and hasNext=false;
+hasPrevious indicates whether the requested page is greater than one.
+
 `POST /api/v1/announcement` creates a private draft. Article responses include
 `isPublished` (the existing Active state) and nullable `publishedAt` (first
 publication time). Owner lists include drafts. Authenticated owner-only
