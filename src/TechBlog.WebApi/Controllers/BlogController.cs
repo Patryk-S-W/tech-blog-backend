@@ -22,8 +22,9 @@ public sealed class BlogController(IMediator mediator, IAnnouncementRepository r
     public async Task<ActionResult<PagedResult<AnnouncementDto>>> GetPublished(
         [FromQuery] PaginationParams query,
         [FromQuery] string? category,
+        [FromQuery] string? language,
         CancellationToken ct)
-        => Ok(await mediator.Send(new GetPublishedAnnouncementsQuery(query, category), ct));
+        => Ok(await mediator.Send(new GetPublishedAnnouncementsQuery(query, category, language), ct));
 
     [HttpGet("categories")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -32,11 +33,11 @@ public sealed class BlogController(IMediator mediator, IAnnouncementRepository r
 
     [HttpGet("announcements/{id:int}")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public async Task<ActionResult<AnnouncementDto>> GetPublishedById(int id, CancellationToken ct) =>
-        Ok(await mediator.Send(new GetPublishedAnnouncementByIdQuery(id), ct));
+    public async Task<ActionResult<AnnouncementDto>> GetPublishedById(int id, [FromQuery] string? language, CancellationToken ct) =>
+        Ok(await mediator.Send(new GetPublishedAnnouncementByIdQuery(id, language), ct));
 
     [HttpGet("announcements/by-slug/{slug}")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public async Task<ActionResult<AnnouncementDto>> GetPublishedBySlug(string slug, CancellationToken ct) =>
-        Ok(await mediator.Send(new GetPublishedAnnouncementBySlugQuery(slug), ct));
+    public async Task<ActionResult<AnnouncementDto>> GetPublishedBySlug(string slug, [FromQuery] string? language, CancellationToken ct) =>
+        Ok(await mediator.Send(new GetPublishedAnnouncementBySlugQuery(slug, language), ct));
 }

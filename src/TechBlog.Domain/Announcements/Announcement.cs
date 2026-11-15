@@ -26,6 +26,7 @@ public sealed class Announcement : Entity, IAggregateRoot
 
     public int UserId { get; private set; }
     public User? User { get; private set; }
+    public ICollection<AnnouncementTranslation> Translations { get; private set; } = new List<AnnouncementTranslation>();
 
     public static Announcement Create(
         string title,

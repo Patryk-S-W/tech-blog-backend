@@ -62,6 +62,7 @@ public sealed class AnnouncementPublicationMigrationTests
                 Assert.False(upgraded.Database.HasPendingModelChanges());
                 var rows = await upgraded.Announcements.OrderBy(a => a.Slug).ToListAsync();
                 Assert.Equal(3, rows.Count);
+                Assert.Empty(await upgraded.Set<TechBlog.Domain.Announcements.AnnouncementTranslation>().ToListAsync());
                 foreach (var row in rows)
                 {
                     Assert.Equal(ownerId, row.UserId);
