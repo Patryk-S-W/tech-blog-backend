@@ -16,6 +16,7 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
 
     public Task<List<Announcement>> GetAllPublishedAsync(CancellationToken ct = default) =>
         context.Announcements
+            .Include(a => a.Translations)
             .Where(a => a.Active)
             .OrderByDescending(a => a.DateCreated)
             .ToListAsync(ct);
@@ -34,16 +35,16 @@ public sealed class AnnouncementRepository(DataContext context) : IAnnouncementR
         if (!string.IsNullOrEmpty(category))
             query = query.Where(a => a.Category == category);
         var totalCount = await query.CountAsync(ct);
-        var items = await query.OrderByDescending(a => a.DateCreated).ThenByDescending(a => a.Id)
+        var items = await query.Include(a => a.Translations).OrderByDescending(a => a.DateCreated).ThenByDescending(a => a.Id)
             .Skip(checked((page - 1) * pageSize)).Take(pageSize).ToListAsync(ct);
         return (items, totalCount);
     }
 
     public Task<Announcement?> GetPublishedByIdAsync(int id, CancellationToken ct = default) =>
-        context.Announcements.FirstOrDefaultAsync(a => a.Id == id && a.Active, ct);
+        context.Announcements.Include(a => a.Translations).FirstOrDefaultAsync(a => a.Id == id && a.Active, ct);
 
     public Task<Announcement?> GetPublishedBySlugAsync(string slug, CancellationToken ct = default) =>
-        context.Announcements.FirstOrDefaultAsync(a => a.Slug == slug && a.Active, ct);
+        context.Announcements.Include(a => a.Translations).FirstOrDefaultAsync(a => a.Slug == slug && a.Active, ct);
 
     public async Task AddAsync(Announcement announcement, CancellationToken ct = default) =>
         await context.Announcements.AddAsync(announcement, ct);
